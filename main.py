@@ -1,58 +1,60 @@
-from flask import Flask
+from flask import Flask, request, render_template
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
 
 
-form = """
-<!DOCTYPE html>
-<html>
-    <head>  
-        <style>
-            .error_info {
-                color: #00529B;
-                background-color: #BDE5F8;
-        </style>
-    </head>
-    <body>
-    <h1 style="color:blue;fond-family:Verdana">Please enter your information below</h>
-    <p style="color:red;font-family:courier">E-mail is optional</p>
-        <form method="post">
-            <table>
-                <tr>
-                    <td><label for="username">Enter your name</label></td>
-                    <td>
-                        <input name="username" type="text" value="">
-                        <span class="error_info">This box cannot be empty</span>
-                    </td>
-                </tr>
+@app.route('/', methods=['GET'])
+def index():
+    return render_template('signup.html', title='Sign up here')
 
-                <tr>
-                    <td><label for="password">Creat a password</label></td>
-                    <td>
-                        <input name="password" type="password">
-                        <span class="error_info">This box cannot be empty</span>
-                    </td>
-                </tr>
 
-                <tr>
-                    <td><label for="verify"> Re-type your password</label></td>
-                    <td>
-                        <input name="verify" type="password">
-                        <span class="error_info">password donnot match!</span> 
-                    </td>
-                </tr>
+@app.route('/', methods=['POST', 'GET'])
+def validate_input():
+    username = request.form['username']
+    username_error = ""
 
-                <tr>
-                    <td><label for="email" E-mail (Ootional)</label></td>
-                    <td>
-                        <input name="email" values="">
-                        <span class="error_info"></span>
-                    </td>
-                </tr>   
-            </table>
-            <input type="submit">
-        </form>
-    </body>
-</html>
-"""
+    password = request.form['password']
+    password_error = ""
+    
+    password_verify = request.form['password-verify']
+    password_verify_error = ""
+
+    email = request.form['email']
+    email_error = ""
+
+   
+    if len(username) == 0:
+        username_error = "This field can't be empty!"
+    elif not 3 < len(username) <= 20:
+        username_error = "must be 3-20 characters long"
+    elif " " in username:
+        username_error = "No empty space allowed"
+
+    #Use this on password:
+    if len(password) == 0:
+        password_error = "This field can't be empty!"
+    elif not 3 <= len(password) <= 20:
+        password_error = "must be 3-20 characters long"  
+    elif " " in password:
+        password_error = "No empty space allowed"
+
+    #Use this on password-verify.
+    if password != password_verify:
+        password_verify_error = "Passwords don't match!"
+   
+    #Use this on email.
+    if len(email) > 0:
+    
+        if "." not in email or "@" not in email:
+            email_error = "Enter correct e-mail"
+        
+    if not username_error and not password_error and not password_verify_error and not email_error: 
+        return render_template('welcome.html', username=username, title='Success!')
+    else:
+        return render_template('signup.html', username=username, email=email, username_error=username_error, password_error=password_error, password_verify_error=password_verify_error, email_error=email_error, title="Enter your information")
+
+
+if __name__ == '__main__':
+    app.run()
